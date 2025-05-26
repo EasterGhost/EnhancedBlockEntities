@@ -1,8 +1,6 @@
 package foundationgames.enhancedblockentities.client.resource.template;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -10,7 +8,6 @@ import java.util.regex.Pattern;
 public class TemplateProvider {
     private final TemplateLoader loader;
     private final TemplateDefinitions.Impl definitions = new TemplateDefinitions.Impl();
-    private final Deque<String> loaded = new ArrayDeque<>();
 
     public TemplateProvider(TemplateLoader loader) {
         this.loader = loader;

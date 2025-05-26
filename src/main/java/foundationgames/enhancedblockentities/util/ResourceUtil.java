@@ -26,9 +26,10 @@ public enum ResourceUtil {;
     private static EBEPack BASE_PACK;
     private static EBEPack TOP_LEVEL_PACK;
 
-    public static void addChestItemDefinition(String chestName, String centerChest, EBEPack pack) {
+    public static void addChestItemDefinition(String chestName, String centerChest, boolean hasChristmas, EBEPack pack) {
         pack.addTemplateResource(Identifier.of("items/"+chestName+".json"),
-                t -> t.load("item/chest_item.json", d -> d.def("chest", centerChest)));
+                t -> t.load(hasChristmas ? "item/chest_item.json" : "item/chest_item_no_christmas.json",
+                        d -> d.def("chest", centerChest)));
     }
 
     public static void addBedItemDefinition(String bedColor, EBEPack pack) {

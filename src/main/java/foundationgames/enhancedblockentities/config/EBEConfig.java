@@ -118,16 +118,14 @@ public class EBEConfig {
             try {
                 Files.createFile(configPath);
             } catch (IOException e) {
-                EnhancedBlockEntities.LOG.error("Failed to create configuration file!");
-                e.printStackTrace();
+                EnhancedBlockEntities.LOG.error("Failed to create configuration file!", e);
                 return;
             }
         }
         try {
             properties.store(Files.newOutputStream(configPath), "Configuration file for Enhanced Block Entities");
         } catch (IOException e) {
-            EnhancedBlockEntities.LOG.error("Failed to write to configuration file!");
-            e.printStackTrace();
+            EnhancedBlockEntities.LOG.error("Failed to write to configuration file!", e);
         }
     }
 
@@ -139,16 +137,14 @@ public class EBEConfig {
                 Files.createFile(configPath);
                 save();
             } catch (IOException e) {
-                EnhancedBlockEntities.LOG.error("Failed to create configuration file!");
-                e.printStackTrace();
+                EnhancedBlockEntities.LOG.error("Failed to create configuration file!", e);
                 return;
             }
         }
         try {
             properties.load(Files.newInputStream(configPath));
         } catch (IOException e) {
-            EnhancedBlockEntities.LOG.error("Failed to read configuration file!");
-            e.printStackTrace();
+            EnhancedBlockEntities.LOG.error("Failed to read configuration file!", e);
             return;
         }
 
