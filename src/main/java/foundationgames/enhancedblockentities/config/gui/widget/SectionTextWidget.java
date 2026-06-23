@@ -1,44 +1,45 @@
 package foundationgames.enhancedblockentities.config.gui.widget;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.AbstractTextWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarratedElementType;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
 
-public class SectionTextWidget extends AbstractTextWidget {
-    public SectionTextWidget(Text message, TextRenderer textRenderer) {
-        this(0, 0, 200, 20, message, textRenderer);
+public class SectionTextWidget extends AbstractWidget {
+    private final Font font;
+
+    public SectionTextWidget(Component message, Font font) {
+        this(0, 0, 200, 20, message, font);
     }
 
-    public SectionTextWidget(int x, int y, int width, int height, Text message, TextRenderer textRenderer) {
-        super(x, y, width, height, message, textRenderer);
+    public SectionTextWidget(int x, int y, int width, int height, Component message, Font font) {
+        super(x, y, width, height, message);
+        this.font = font;
         this.active = false;
     }
 
+    @SuppressWarnings("null")
     @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        final int white = 0xFFFFFFFF;
-        var font = this.getTextRenderer();
-        var msg = this.getMessage();
-
-        int l = this.getX();
-        int w = this.getWidth();
-        int r = l + w;
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float tickDelta) {
         int y = (this.getY() + this.getHeight()) - 6;
+        int left = this.getX() + 1;
+        int right = this.getX() + this.getWidth() - 1;
+        int textWidth = this.font.width(this.getMessage());
+        int textLeft = this.getX() + ((this.getWidth() - textWidth) / 2) - 5;
+        int textRight = textLeft + textWidth + 10;
+        int textX = this.getX() + (this.getWidth() / 2);
+        int textY = y - (this.font.lineHeight / 2);
 
-        int tx = l + (w / 2);
-        int ty = y - (font.fontHeight / 2);
-        int tw = font.getWidth(msg);
+        graphics.fill(left, y, textLeft, y + 2, 0xFFFFFFFF);
+        graphics.fill(textRight, y, right, y + 2, 0xFFFFFFFF);
+        graphics.centeredText(this.font, this.getMessage(), textX, textY, 0xFFFFFF);
+    }
 
-        int ml = l + ((w - tw) / 2) - 5;
-        int mr = ml + tw + 10;
-
-        l += 1;
-        r -= 1;
-
-        context.fill(l, y, ml, y + 2, white);
-        context.fill(mr, y, r, y + 2, white);
-
-        context.drawCenteredTextWithShadow(font, msg, tx, ty, 0xFFFFFF);
+    @SuppressWarnings("null")
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput output) {
+        output.add(NarratedElementType.TITLE, this.getMessage());
     }
 }

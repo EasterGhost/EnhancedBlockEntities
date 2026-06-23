@@ -1,86 +1,102 @@
 package foundationgames.enhancedblockentities.config.gui.widget;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.ElementListWidget;
-import net.minecraft.client.gui.widget.GridWidget;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.ContainerObjectSelectionList;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class WidgetRowListWidget extends ElementListWidget<WidgetRowListWidget.Entry> {
-    public static final int SPACING = 3;
+public class WidgetRowListWidget extends ContainerObjectSelectionList<WidgetRowListWidget.Entry> {
+    public static final int SPACING = 4;
 
-    public final int rowWidth;
-    public final int rowHeight;
+    private final int rowWidth;
+    private final int rowHeight;
 
-    public WidgetRowListWidget(MinecraftClient mc, int w, int h, int y, int rowWidth, int rowHeight) {
-        super(mc, w, h, y, rowHeight + SPACING);
+    public WidgetRowListWidget(Minecraft minecraft, int width, int height, int y, int rowWidth, int rowHeight) {
+        super(minecraft, width, height, y, rowHeight + SPACING);
         this.rowWidth = rowWidth;
         this.rowHeight = rowHeight;
     }
 
-    public void add(ClickableWidget ... widgets) {
-        if (widgets.length == 0) return;
-
-        var grid = new GridWidget();
-        grid.setColumnSpacing(SPACING);
-        var adder = grid.createAdder(widgets.length);
-
-        int width = (this.rowWidth - ((widgets.length - 1) * SPACING)) / widgets.length;
-
-        for (var widget : widgets) {
-            widget.setDimensions(width, this.rowHeight);
-            adder.add(widget);
+    public void add(AbstractWidget... widgets) {
+        if (widgets.length == 0) {
+            return;
         }
 
-        grid.refreshPositions();
+        int widgetWidth = (this.rowWidth - ((widgets.length - 1) * SPACING)) / widgets.length;
+        for (var widget : widgets) {
+            widget.setSize(widgetWidth, this.rowHeight);
+        }
 
-        this.addEntry(new Entry(grid));
+        this.addEntry(new Entry(this.rowWidth, this.rowHeight, Arrays.asList(widgets)));
     }
 
     @Override
     public int getRowWidth() {
-        return rowWidth;
+        return this.rowWidth;
     }
 
     @Override
-    protected int getScrollbarX() {
-        return this.width - 6;
+    protected int scrollBarX() {
+        return this.getX() + this.getWidth() - 6;
     }
 
-    @Override
-    protected void drawMenuListBackground(DrawContext context) {
-    }
+    public static class Entry extends ContainerObjectSelectionList.Entry<Entry> {
+        private final int rowWidth;
+        private final int rowHeight;
+        private final List<AbstractWidget> children;
 
-    public static class Entry extends ElementListWidget.Entry<Entry> {
-        private final GridWidget widget;
-        private final List<ClickableWidget> children = new ArrayList<>();
-
-        public Entry(GridWidget widget) {
-            this.widget = widget;
-            widget.forEachChild(children::add);
+        public Entry(int rowWidth, int rowHeight, List<AbstractWidget> widgets) {
+            this.rowWidth = rowWidth;
+            this.rowHeight = rowHeight;
+            this.children = new ArrayList<>(widgets);
         }
 
+        @SuppressWarnings("null")
         @Override
-        public List<? extends Element> children() {
+        public List<? extends GuiEventListener> children() {
             return this.children;
         }
 
+        @SuppressWarnings("null")
         @Override
-        public List<? extends Selectable> selectableChildren() {
+        public List<? extends NarratableEntry> narratables() {
             return this.children;
         }
 
+        @SuppressWarnings("null")
         @Override
-        public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-            this.widget.setPosition(x - 3, y);
-            this.widget.refreshPositions();
+        public void visitWidgets(java.util.function.Consumer<AbstractWidget> consumer) {
+            this.layoutChildren();
+            this.children.forEach(consumer);
+        }
 
-            this.widget.forEachChild(c -> c.render(context, mouseX, mouseY, tickDelta));
+        @SuppressWarnings("null")
+        @Override
+        public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            this.layoutChildren();
+            for (var widget : this.children) {
+                widget.extractRenderState(graphics, mouseX, mouseY, tickDelta);
+            }
+        }
+
+        private void layoutChildren() {
+            int count = this.children.size();
+            int widgetWidth = (this.rowWidth - ((count - 1) * SPACING)) / count;
+            int x = this.getContentX();
+            int y = this.getY();
+
+            for (var widget : this.children) {
+                widget.setX(x);
+                widget.setY(y);
+                widget.setSize(widgetWidth, this.rowHeight);
+                x += widgetWidth + SPACING;
+            }
         }
     }
 }

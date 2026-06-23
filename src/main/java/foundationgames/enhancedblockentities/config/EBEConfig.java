@@ -4,7 +4,7 @@ import foundationgames.enhancedblockentities.EnhancedBlockEntities;
 import foundationgames.enhancedblockentities.util.ConvUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -153,7 +153,7 @@ public class EBEConfig {
         readFrom(properties);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "null" })
     private void applyCompatConfigModifiers(Properties properties) {
         this.overrides.clear();
 
@@ -162,11 +162,11 @@ public class EBEConfig {
         for (var modifier : ebeCompatCfgModifiers) {
             var mod = modifier.getProvider();
             var overrides = new Properties();
-            var reasons = new HashMap<String, Text>();
+            var reasons = new HashMap<String, Component>();
             modifier.getEntrypoint().accept(overrides, reasons);
 
             for (var key : overrides.stringPropertyNames()) {
-                @Nullable Text reason = reasons.get(key);
+                @Nullable Component reason = reasons.get(key);
                 this.overrides.put(key, new Override(mod, reason));
             }
 
@@ -174,5 +174,5 @@ public class EBEConfig {
         }
     }
 
-    public record Override(ModContainer modResponsible, @Nullable Text reason) {}
+    public record Override(ModContainer modResponsible, @Nullable Component reason) {}
 }
