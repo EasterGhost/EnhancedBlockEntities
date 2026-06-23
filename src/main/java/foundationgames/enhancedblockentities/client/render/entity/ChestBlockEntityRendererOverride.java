@@ -1,74 +1,41 @@
 package foundationgames.enhancedblockentities.client.render.entity;
 
 import foundationgames.enhancedblockentities.client.render.BlockEntityRendererOverride;
-import foundationgames.enhancedblockentities.util.EBEUtil;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.LidOpenable;
-import net.minecraft.block.enums.ChestType;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
-
-import java.util.function.Function;
-import java.util.function.Supplier;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.LidBlockEntity;
+import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
 public class ChestBlockEntityRendererOverride extends BlockEntityRendererOverride {
-    private BakedModel[] models = null;
-    private final Supplier<BakedModel[]> modelGetter;
-    private final Function<BlockEntity, Integer> modelSelector;
-
-    public ChestBlockEntityRendererOverride(Supplier<BakedModel[]> modelGetter, Function<BlockEntity, Integer> modelSelector) {
-        this.modelGetter = modelGetter;
-        this.modelSelector = modelSelector;
-    }
-
     @Override
-    public void render(BlockEntityRenderer<BlockEntity> renderer, BlockEntity blockEntity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        if (models == null) models = modelGetter.get();
-        if (blockEntity instanceof LidOpenable) {
-            matrices.push();
+    public void render(BlockEntityRenderer<BlockEntity, ?> renderer, BlockEntity blockEntity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {}
 
-            LidOpenable chest = getLidAnimationHolder(blockEntity, tickDelta);
-            matrices.translate(0.5f, 0, 0.5f);
-            Direction dir = blockEntity.getCachedState().get(ChestBlock.FACING);
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180 - EBEUtil.angle(dir)));
-            matrices.translate(-0.5f, 0, -0.5f);
-            float yPiv = 9f / 16;
-            float zPiv = 15f / 16;
-            matrices.translate(0, yPiv, zPiv);
-            float rot = chest.getAnimationProgress(tickDelta);
-            rot = 1f - rot;
-            rot = 1f - (rot * rot * rot);
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(rot * 90));
-            matrices.translate(0, -yPiv, -zPiv);
-            EBEUtil.renderBakedModel(vertexConsumers, blockEntity.getCachedState(), matrices, models[modelSelector.apply(blockEntity)], light, overlay);
+    @SuppressWarnings("null")
+    public static LidBlockEntity getLidAnimationHolder(BlockEntity blockEntity, float tickDelta) {
+        LidBlockEntity chest = (LidBlockEntity)blockEntity;
 
-            matrices.pop();
-        }
-    }
-
-    public static LidOpenable getLidAnimationHolder(BlockEntity blockEntity, float tickDelta) {
-        LidOpenable chest = (LidOpenable)blockEntity;
-
-        BlockState state = blockEntity.getCachedState();
-        if (state.contains(ChestBlock.CHEST_TYPE) && state.get(ChestBlock.CHEST_TYPE) != ChestType.SINGLE) {
+        BlockState state = blockEntity.getBlockState();
+        if (state.hasProperty(BlockStateProperties.CHEST_TYPE) && state.getValue(BlockStateProperties.CHEST_TYPE) != ChestType.SINGLE) {
             BlockEntity neighbor = null;
-            BlockPos pos = blockEntity.getPos();
-            Direction facing = state.get(ChestBlock.FACING);
-            switch (state.get(ChestBlock.CHEST_TYPE)) {
-                case LEFT -> neighbor = blockEntity.getWorld().getBlockEntity(pos.offset(facing.rotateYClockwise()));
-                case RIGHT -> neighbor = blockEntity.getWorld().getBlockEntity(pos.offset(facing.rotateYCounterclockwise()));
+            BlockPos pos = blockEntity.getBlockPos();
+            Direction facing = state.getValue(ChestBlock.FACING);
+            switch (state.getValue(BlockStateProperties.CHEST_TYPE)) {
+                case LEFT -> neighbor = blockEntity.getLevel().getBlockEntity(pos.relative(facing.getClockWise()));
+                case RIGHT -> neighbor = blockEntity.getLevel().getBlockEntity(pos.relative(facing.getCounterClockWise()));
+                case SINGLE -> {
+                }
             }
-            if (neighbor instanceof LidOpenable) {
-                float nAnim = ((LidOpenable)neighbor).getAnimationProgress(tickDelta);
-                if (nAnim > chest.getAnimationProgress(tickDelta)) {
-                    chest = ((LidOpenable)neighbor);
+            if (neighbor instanceof LidBlockEntity) {
+                float nAnim = ((LidBlockEntity)neighbor).getOpenNess(tickDelta);
+                if (nAnim > chest.getOpenNess(tickDelta)) {
+                    chest = ((LidBlockEntity)neighbor);
                 }
             }
         }
@@ -78,6 +45,5 @@ public class ChestBlockEntityRendererOverride extends BlockEntityRendererOverrid
 
     @Override
     public void onModelsReload() {
-        this.models = null;
     }
 }

@@ -2,11 +2,11 @@ package foundationgames.enhancedblockentities.client.render;
 
 import foundationgames.enhancedblockentities.EnhancedBlockEntities;
 import foundationgames.enhancedblockentities.config.EBEConfig;
-import foundationgames.enhancedblockentities.mixin.AbstractSignBlockEntityRenderAccessor;
+import foundationgames.enhancedblockentities.mixin.AbstractSignRendererAccessor;
 import foundationgames.enhancedblockentities.util.duck.AppearanceStateHolder;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.Vec3;
 
 @FunctionalInterface
 public interface BlockEntityRenderCondition {
@@ -23,27 +23,28 @@ public interface BlockEntityRenderCondition {
 
     BlockEntityRenderCondition SHULKER_BOX = NON_ZERO_STATE;
 
+    @SuppressWarnings("null")
     BlockEntityRenderCondition SIGN = entity -> {
         EBEConfig config = EnhancedBlockEntities.CONFIG;
         if (config.signTextRendering.equals("all")) {
             return true;
         }
-        double playerDistance = MinecraftClient.getInstance().player.getBlockPos().getSquaredDistance(entity.getPos());
+        double playerDistance = Minecraft.getInstance().player.blockPosition().distSqr(entity.getBlockPos());
         if (config.signTextRendering.equals("smart")) {
-            SignRenderManager.renderedSigns++;
+            SignRenderManager.countRenderedSign();
             return playerDistance < 80 + Math.max(0, 580 - (SignRenderManager.getRenderedSignAmount() * 0.7));
         }
-        double dist = AbstractSignBlockEntityRenderAccessor.enhanced_bes$getRenderDistance();
-        Vec3d blockPos = Vec3d.ofCenter(entity.getPos());
-        Vec3d playerPos = MinecraftClient.getInstance().player.getPos();
+        double dist = AbstractSignRendererAccessor.enhanced_bes$getOutlineRenderDistance();
+        Vec3 blockPos = Vec3.atCenterOf(entity.getBlockPos());
+        Vec3 playerPos = Minecraft.getInstance().player.position();
         if (config.signTextRendering.equals("most")) {
-            return blockPos.isInRange(playerPos, dist * 0.6);
+            return blockPos.closerThan(playerPos, dist * 0.6);
         }
         if (config.signTextRendering.equals("some")) {
-            return blockPos.isInRange(playerPos, dist * 0.3);
+            return blockPos.closerThan(playerPos, dist * 0.3);
         }
         if (config.signTextRendering.equals("few")) {
-            return blockPos.isInRange(playerPos, dist * 0.15);
+            return blockPos.closerThan(playerPos, dist * 0.15);
         }
         return false;
     };

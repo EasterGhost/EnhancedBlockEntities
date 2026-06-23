@@ -2,9 +2,9 @@ package foundationgames.enhancedblockentities.mixin;
 
 import foundationgames.enhancedblockentities.util.WorldUtil;
 import foundationgames.enhancedblockentities.util.duck.AppearanceStateHolder;
-import net.minecraft.block.entity.DecoratedPotBlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity;
+import net.minecraft.world.level.storage.ValueInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,32 +17,35 @@ public class DecoratedPotBlockEntityMixin implements AppearanceStateHolder {
     @Unique private int enhanced_bes$modelState = 0;
     @Unique private int enhanced_bes$renderState = 0;
 
-    @Inject(method = "readNbt", at = @At("TAIL"))
-    private void enhanced_bes$updateChunkOnPatternsLoaded(NbtCompound nbt, RegistryWrapper.WrapperLookup rwl, CallbackInfo ci) {
+    @Inject(method = "loadAdditional", at = @At("TAIL"))
+    private void enhanced_bes$updateChunkOnPatternsLoaded(ValueInput input, CallbackInfo ci) {
         var self = (DecoratedPotBlockEntity)(Object)this;
+        var level = self.getLevel();
 
-        if (self.getWorld() != null && self.getWorld().isClient()) {
-            WorldUtil.rebuildChunk(self.getWorld(), self.getPos());
+        if (level != null && level.isClientSide()) {
+            WorldUtil.rebuildChunk(level, self.getBlockPos());
         }
     }
 
-    @Inject(method = "onSyncedBlockEvent", at = @At(value = "RETURN", shift = At.Shift.BEFORE, ordinal = 0))
+    @Inject(method = "triggerEvent", at = @At("TAIL"))
     private void enhanced_bes$updateOnWobble(int type, int data, CallbackInfoReturnable<Boolean> cir) {
         var self = (DecoratedPotBlockEntity)(Object)this;
-        var world = self.getWorld();
+        var level = self.getLevel();
 
-        if (self.lastWobbleType == null) {
+        if (!cir.getReturnValueZ() || level == null || !level.isClientSide() || self.lastWobbleStyle == null) {
             return;
         }
 
-        this.updateAppearanceState(1, world, self.getPos());
+        this.updateAppearanceState(1, level, self.getBlockPos());
 
-        WorldUtil.scheduleTimed(world, self.lastWobbleTime + self.lastWobbleType.lengthInTicks,
-                () -> {
-                    if (self.getWorld().getTime() >= self.lastWobbleTime + self.lastWobbleType.lengthInTicks) {
-                        this.updateAppearanceState(0, world, self.getPos());
-                    }
-                });
+        @SuppressWarnings("null")
+        long endTime = self.wobbleStartedAtTick + self.lastWobbleStyle.duration;
+        WorldUtil.scheduleTimed(level, endTime, () -> {
+            Level currentLevel = self.getLevel();
+            if (currentLevel != null && currentLevel.getGameTime() >= endTime) {
+                this.updateAppearanceState(0, currentLevel, self.getBlockPos());
+            }
+        });
     }
 
     @Override
