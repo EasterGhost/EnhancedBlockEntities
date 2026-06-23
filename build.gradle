@@ -1,14 +1,14 @@
 plugins {
-	id 'fabric-loom' version '1.8-SNAPSHOT'
-	id 'maven-publish'
+	id 'net.fabricmc.fabric-loom' version '1.15.5'
+    id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
-
-archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
 
 repositories {
 	maven { url = 'https://maven.terraformersmc.com/' }
@@ -18,24 +18,32 @@ repositories {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modCompileClasspath "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modCompileClasspath "net.fabricmc.fabric-api:fabric-model-loading-api-v1:8.0.1+c7e428fd47"
+	modCompileClasspath "net.fabricmc.fabric-api:fabric-renderer-api-v1:12.0.0+51b152e147"
+	modCompileClasspath "net.fabricmc.fabric-api:fabric-rendering-v1:23.0.4+c7e428fd47"
 
 	// Mod Menu because config screen access from another place
-	modApi "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modCompileClasspath "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	// Sodium for compatibility
-	modCompileOnlyApi "maven.modrinth:sodium:${project.sodium_version}"
+	modCompileClasspath "maven.modrinth:sodium:${project.sodium_version}"
+}
+
+configurations {
+	compileClasspath.extendsFrom modCompileClasspath
+	runtimeClasspath.extendsFrom modCompileClasspath
 }
 
 processResources {
 	inputs.property "version", project.version
+	inputs.property "minecraft_version", project.minecraft_version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": project.version, "minecraft_version": project.minecraft_version
 	}
 }
 
@@ -48,6 +56,9 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+
 	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 	// if it is present.
 	// If you remove this line, sources will not be generated.
@@ -56,7 +67,7 @@ java {
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
+		rename { "${it}_${project.archives_base_name}"}
 	}
 }
 
