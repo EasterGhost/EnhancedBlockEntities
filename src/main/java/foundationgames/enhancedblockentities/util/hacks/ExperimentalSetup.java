@@ -4,8 +4,8 @@ import foundationgames.enhancedblockentities.EnhancedBlockEntities;
 import foundationgames.enhancedblockentities.client.resource.EBEPack;
 import foundationgames.enhancedblockentities.config.EBEConfig;
 import foundationgames.enhancedblockentities.util.ResourceUtil;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.DyeColor;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.item.DyeColor;
 
 import java.io.IOException;
 
@@ -17,27 +17,33 @@ public enum ExperimentalSetup {;
 
         if (config.renderEnhancedChests && config.experimentalChests) {
             try {
-                if (RESOURCES != null) setupChests(RESOURCES);
+                if (RESOURCES != null) {
+                    setupChests(RESOURCES);
+                }
             } catch (IOException e) {
-                EnhancedBlockEntities.LOG.error("Error loading experimental chests!", e);
+                EnhancedBlockEntities.LOG.error("Error loading experimental chests", e);
                 config.experimentalChests = false;
                 config.save();
             }
         }
         if (config.renderEnhancedBeds && config.experimentalBeds) {
             try {
-                if (RESOURCES != null) setupBeds(RESOURCES);
+                if (RESOURCES != null) {
+                    setupBeds(RESOURCES);
+                }
             } catch (IOException e) {
-                EnhancedBlockEntities.LOG.error("Error loading experimental beds!", e);
+                EnhancedBlockEntities.LOG.error("Error loading experimental beds", e);
                 config.experimentalBeds = false;
                 config.save();
             }
         }
         if (config.renderEnhancedSigns && config.experimentalSigns) {
             try {
-                if (RESOURCES != null) setupSigns(RESOURCES);
+                if (RESOURCES != null) {
+                    setupSigns(RESOURCES);
+                }
             } catch (IOException e) {
-                EnhancedBlockEntities.LOG.error("Error loading experimental signs!", e);
+                EnhancedBlockEntities.LOG.error("Error loading experimental signs", e);
                 config.experimentalSigns = false;
                 config.save();
             }
@@ -51,13 +57,21 @@ public enum ExperimentalSetup {;
         ResourceHacks.addChestParticleTexture("trapped_chest", "entity/chest/trapped", manager, p);
         ResourceHacks.addChestParticleTexture("ender_chest", "entity/chest/ender", manager, p);
         ResourceHacks.addChestParticleTexture("christmas_chest", "entity/chest/christmas", manager, p);
+        ResourceHacks.addChestParticleTexture("copper_chest", "entity/chest/copper", manager, p);
+        ResourceHacks.addChestParticleTexture("exposed_copper_chest", "entity/chest/copper_exposed", manager, p);
+        ResourceHacks.addChestParticleTexture("weathered_copper_chest", "entity/chest/copper_weathered", manager, p);
+        ResourceHacks.addChestParticleTexture("oxidized_copper_chest", "entity/chest/copper_oxidized", manager, p);
+        ResourceHacks.addChestParticleTexture("waxed_copper_chest", "entity/chest/copper", manager, p);
+        ResourceHacks.addChestParticleTexture("waxed_exposed_copper_chest", "entity/chest/copper_exposed", manager, p);
+        ResourceHacks.addChestParticleTexture("waxed_weathered_copper_chest", "entity/chest/copper_weathered", manager, p);
+        ResourceHacks.addChestParticleTexture("waxed_oxidized_copper_chest", "entity/chest/copper_oxidized", manager, p);
     }
 
     public static void setupBeds(ResourceManager manager) throws IOException {
         EBEPack p = ResourceUtil.getTopLevelPack();
 
         for (var color : DyeColor.values()) {
-            ResourceHacks.addBedParticleTexture(color.getName(), "entity/bed/"+color.getName(), manager, p);
+            ResourceHacks.addBedParticleTexture(color.getName(), "entity/bed/" + color.getName(), manager, p);
         }
     }
 
@@ -75,6 +89,7 @@ public enum ExperimentalSetup {;
         ResourceHacks.addSignParticleTexture("crimson", "entity/signs/crimson", manager, p);
         ResourceHacks.addSignParticleTexture("warped", "entity/signs/warped", manager, p);
         ResourceHacks.addSignParticleTexture("bamboo", "entity/signs/bamboo", manager, p);
+        ResourceHacks.addSignParticleTexture("pale_oak", "entity/signs/pale_oak", manager, p);
     }
 
     public static void cacheResources(ResourceManager resources) {

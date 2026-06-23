@@ -1,42 +1,38 @@
 package foundationgames.enhancedblockentities;
 
-import foundationgames.enhancedblockentities.client.model.DynamicModelEffects;
-import foundationgames.enhancedblockentities.client.model.DynamicModelProvidingPlugin;
-import foundationgames.enhancedblockentities.client.model.DynamicUnbakedModel;
-import foundationgames.enhancedblockentities.client.model.ModelIdentifiers;
-import foundationgames.enhancedblockentities.client.model.ModelSelector;
-import foundationgames.enhancedblockentities.client.model.misc.DecoratedPotModelSelector;
+import foundationgames.enhancedblockentities.client.model.DynamicModelLoadingPlugin;
 import foundationgames.enhancedblockentities.client.render.BlockEntityRenderCondition;
 import foundationgames.enhancedblockentities.client.render.BlockEntityRendererOverride;
-import foundationgames.enhancedblockentities.client.render.entity.BellBlockEntityRendererOverride;
-import foundationgames.enhancedblockentities.client.render.entity.ChestBlockEntityRendererOverride;
-import foundationgames.enhancedblockentities.client.render.entity.DecoratedPotBlockEntityRendererOverride;
-import foundationgames.enhancedblockentities.client.render.entity.ShulkerBoxBlockEntityRendererOverride;
-import foundationgames.enhancedblockentities.client.render.entity.SignBlockEntityRendererOverride;
 import foundationgames.enhancedblockentities.client.resource.EBEPack;
-import foundationgames.enhancedblockentities.util.DateUtil;
 import foundationgames.enhancedblockentities.util.EBEUtil;
 import foundationgames.enhancedblockentities.util.ResourceUtil;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.model.loading.v1.FabricBakedModelManager;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.enums.ChestType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.registry.Registries;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
-
-import java.util.function.Function;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.item.DyeColor;
 
 public enum EBESetup {;
+    private static final CopperChest[] COPPER_CHESTS = {
+            new CopperChest("copper_chest", "copper", Blocks.COPPER_CHEST),
+            new CopperChest("exposed_copper_chest", "copper_exposed", Blocks.EXPOSED_COPPER_CHEST),
+            new CopperChest("weathered_copper_chest", "copper_weathered", Blocks.WEATHERED_COPPER_CHEST),
+            new CopperChest("oxidized_copper_chest", "copper_oxidized", Blocks.OXIDIZED_COPPER_CHEST),
+            new CopperChest("waxed_copper_chest", "copper", Blocks.WAXED_COPPER_CHEST),
+            new CopperChest("waxed_exposed_copper_chest", "copper_exposed", Blocks.WAXED_EXPOSED_COPPER_CHEST),
+            new CopperChest("waxed_weathered_copper_chest", "copper_weathered", Blocks.WAXED_WEATHERED_COPPER_CHEST),
+            new CopperChest("waxed_oxidized_copper_chest", "copper_oxidized", Blocks.WAXED_OXIDIZED_COPPER_CHEST)
+    };
+
+    private static final String[] COPPER_CHEST_TEXTURES = {
+            "copper", "copper_left", "copper_right",
+            "copper_exposed", "copper_exposed_left", "copper_exposed_right",
+            "copper_weathered", "copper_weathered_left", "copper_weathered_right",
+            "copper_oxidized", "copper_oxidized_left", "copper_oxidized_right"
+    };
+
     public static void setupRRPChests() {
         EBEPack p = ResourceUtil.getPackForCompat();
 
@@ -44,22 +40,41 @@ public enum EBESetup {;
         ResourceUtil.addChestBlockStates("trapped_chest", p);
         ResourceUtil.addChestBlockStates("christmas_chest", p);
         ResourceUtil.addSingleChestOnlyBlockStates("ender_chest", p);
+        for (var copperChest : COPPER_CHESTS) {
+            ResourceUtil.addChestBlockStates(copperChest.blockName(), p);
+        }
 
         p = ResourceUtil.getBasePack();
 
         ResourceUtil.addSingleChestModels("normal", "chest", p);
-        ResourceUtil.addDoubleChestModels("normal_left", "normal_right","chest", p);
+        ResourceUtil.addDoubleChestModels("normal_left", "normal_right", "chest", p);
         ResourceUtil.addSingleChestModels("trapped", "trapped_chest", p);
-        ResourceUtil.addDoubleChestModels("trapped_left", "trapped_right","trapped_chest", p);
+        ResourceUtil.addDoubleChestModels("trapped_left", "trapped_right", "trapped_chest", p);
         ResourceUtil.addSingleChestModels("christmas", "christmas_chest", p);
-        ResourceUtil.addDoubleChestModels("christmas_left", "christmas_right","christmas_chest", p);
+        ResourceUtil.addDoubleChestModels("christmas_left", "christmas_right", "christmas_chest", p);
         ResourceUtil.addSingleChestModels("ender", "ender_chest", p);
 
         ResourceUtil.addChestItemDefinition("chest", "chest_center", true, p);
         ResourceUtil.addChestItemDefinition("trapped_chest", "trapped_chest_center", true, p);
         ResourceUtil.addChestItemDefinition("ender_chest", "ender_chest_center", false, p);
+        for (var copperChest : COPPER_CHESTS) {
+            ResourceUtil.addSingleChestModels(copperChest.textureName(), copperChest.blockName(), p);
+            ResourceUtil.addDoubleChestModels(copperChest.textureName() + "_left", copperChest.textureName() + "_right",
+                    copperChest.blockName(), p);
+            ResourceUtil.addChestItemDefinition(copperChest.blockName(), copperChest.blockName() + "_center", false, p);
+        }
 
-        p.addDirBlockSprites("entity/chest", "entity/chest/");
+        for (var texture : new String[] {
+                "normal", "normal_left", "normal_right",
+                "trapped", "trapped_left", "trapped_right",
+                "christmas", "christmas_left", "christmas_right",
+                "ender"
+        }) {
+            ResourceUtil.addAliasedBlockSprite("entity/chest/" + texture, p);
+        }
+        for (var texture : COPPER_CHEST_TEXTURES) {
+            ResourceUtil.addAliasedBlockSprite("entity/chest/" + texture, p);
+        }
     }
 
     public static void setupRRPSigns() {
@@ -106,15 +121,22 @@ public enum EBESetup {;
         ResourceUtil.addSignTypeModels("bamboo", p);
         ResourceUtil.addSignTypeModels("pale_oak", p);
 
-        p.addDirBlockSprites("entity/signs", "entity/signs/");
-        p.addDirBlockSprites("entity/signs/hanging", "entity/signs/hanging/");
-        p.addDirBlockSprites("gui/hanging_signs", "block/particle_hanging_sign_");
+        for (var signType : new String[] {
+                "oak", "birch", "spruce", "jungle", "acacia", "dark_oak",
+                "mangrove", "cherry", "crimson", "warped", "bamboo", "pale_oak"
+        }) {
+            ResourceUtil.addAliasedBlockSprite("entity/signs/" + signType, p);
+            ResourceUtil.addAliasedBlockSprite("entity/signs/hanging/" + signType, p);
+            ResourceUtil.addAliasedBlockSprite(
+                    Identifier.withDefaultNamespace("gui/hanging_signs/" + signType),
+                    EBEUtil.id("block/particle_hanging_sign_" + signType),
+                    p);
+        }
     }
 
     public static void setupRRPBells() {
         ResourceUtil.addBellBlockState(ResourceUtil.getPackForCompat());
-
-        ResourceUtil.getBasePack().addSingleBlockSprite(Identifier.of("entity/bell/bell_body"));
+        ResourceUtil.getBasePack().addSingleBlockSprite(Identifier.withDefaultNamespace("entity/bell/bell_body"));
     }
 
     public static void setupRRPBeds() {
@@ -126,7 +148,9 @@ public enum EBESetup {;
             ResourceUtil.addBedModels(color, p);
         }
 
-        p.addDirBlockSprites("entity/bed", "entity/bed/");
+        for (DyeColor color : DyeColor.values()) {
+            ResourceUtil.addAliasedBlockSprite("entity/bed/" + color.getName(), p);
+        }
     }
 
     public static void setupRRPShulkerBoxes() {
@@ -134,13 +158,16 @@ public enum EBESetup {;
         EBEPack pCompat = ResourceUtil.getPackForCompat();
 
         for (DyeColor color : EBEUtil.DEFAULTED_DYE_COLORS) {
-            var id = color != null ? color.getName()+"_shulker_box" : "shulker_box";
+            var id = color != null ? color.getName() + "_shulker_box" : "shulker_box";
             ResourceUtil.addShulkerBoxBlockStates(color, pCompat);
             ResourceUtil.addShulkerBoxModels(color, p);
-            ResourceUtil.addParentModel("block/"+id, Identifier.of("item/"+id), p);
+            ResourceUtil.addParentModel("block/" + id, Identifier.withDefaultNamespace("item/" + id), p);
         }
 
-        p.addDirBlockSprites("entity/shulker", "entity/shulker/");
+        for (DyeColor color : EBEUtil.DEFAULTED_DYE_COLORS) {
+            var texture = color != null ? "entity/shulker/shulker_" + color.getName() : "entity/shulker/shulker";
+            ResourceUtil.addAliasedBlockSprite(texture, p);
+        }
     }
 
     public static void setupRRPDecoratedPots() {
@@ -148,216 +175,35 @@ public enum EBESetup {;
         EBEPack pCompat = ResourceUtil.getPackForCompat();
 
         ResourceUtil.addDecoratedPotBlockState(pCompat);
-        for (var patternKey : Registries.DECORATED_POT_PATTERN.getKeys()) {
+        for (var patternKey : BuiltInRegistries.DECORATED_POT_PATTERN.registryKeySet()) {
             ResourceUtil.addDecoratedPotPatternModels(patternKey, p);
         }
 
-        p.addDirBlockSprites("entity/decorated_pot", "entity/decorated_pot/");
+        ResourceUtil.addAliasedBlockSprite("entity/decorated_pot/decorated_pot_base", p);
     }
 
     public static void setupResourceProviders() {
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "chest_center"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.CHEST_CENTER,
-                                ModelIdentifiers.CHEST_CENTER_TRUNK,
-                                ModelIdentifiers.CHRISTMAS_CHEST_CENTER,
-                                ModelIdentifiers.CHRISTMAS_CHEST_CENTER_TRUNK
-                        },
-                        ModelSelector.CHEST_WITH_CHRISTMAS,
-                        DynamicModelEffects.CHEST
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "chest_left"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.CHEST_LEFT,
-                                ModelIdentifiers.CHEST_LEFT_TRUNK,
-                                ModelIdentifiers.CHRISTMAS_CHEST_LEFT,
-                                ModelIdentifiers.CHRISTMAS_CHEST_LEFT_TRUNK
-                        },
-                        ModelSelector.CHEST_WITH_CHRISTMAS,
-                        DynamicModelEffects.CHEST
-                )
-        ));
-
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "chest_right"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.CHEST_RIGHT,
-                                ModelIdentifiers.CHEST_RIGHT_TRUNK,
-                                ModelIdentifiers.CHRISTMAS_CHEST_RIGHT,
-                                ModelIdentifiers.CHRISTMAS_CHEST_RIGHT_TRUNK
-                        },
-                        ModelSelector.CHEST_WITH_CHRISTMAS,
-                        DynamicModelEffects.CHEST
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "trapped_chest_center"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.TRAPPED_CHEST_CENTER,
-                                ModelIdentifiers.TRAPPED_CHEST_CENTER_TRUNK,
-                                ModelIdentifiers.CHRISTMAS_CHEST_CENTER,
-                                ModelIdentifiers.CHRISTMAS_CHEST_CENTER_TRUNK
-                        },
-                        ModelSelector.CHEST_WITH_CHRISTMAS,
-                        DynamicModelEffects.CHEST
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "trapped_chest_left"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.TRAPPED_CHEST_LEFT,
-                                ModelIdentifiers.TRAPPED_CHEST_LEFT_TRUNK,
-                                ModelIdentifiers.CHRISTMAS_CHEST_LEFT,
-                                ModelIdentifiers.CHRISTMAS_CHEST_LEFT_TRUNK
-                        },
-                        ModelSelector.CHEST_WITH_CHRISTMAS,
-                        DynamicModelEffects.CHEST
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "trapped_chest_right"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.TRAPPED_CHEST_RIGHT,
-                                ModelIdentifiers.TRAPPED_CHEST_RIGHT_TRUNK,
-                                ModelIdentifiers.CHRISTMAS_CHEST_RIGHT,
-                                ModelIdentifiers.CHRISTMAS_CHEST_RIGHT_TRUNK
-                        },
-                        ModelSelector.CHEST_WITH_CHRISTMAS,
-                        DynamicModelEffects.CHEST
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "ender_chest_center"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.ENDER_CHEST_CENTER,
-                                ModelIdentifiers.ENDER_CHEST_CENTER_TRUNK
-                        },
-                        ModelSelector.CHEST,
-                        DynamicModelEffects.CHEST
-                )
-        ));
-
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "bell_between_walls"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.BELL_BETWEEN_WALLS_WITH_BELL,
-                                ModelIdentifiers.BELL_BETWEEN_WALLS
-                        },
-                        ModelSelector.BELL,
-                        DynamicModelEffects.BELL
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "bell_ceiling"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.BELL_CEILING_WITH_BELL,
-                                ModelIdentifiers.BELL_CEILING
-                        },
-                        ModelSelector.BELL,
-                        DynamicModelEffects.BELL
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "bell_floor"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.BELL_FLOOR_WITH_BELL,
-                                ModelIdentifiers.BELL_FLOOR
-                        },
-                        ModelSelector.BELL,
-                        DynamicModelEffects.BELL
-                )
-        ));
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "bell_wall"),
-                () -> new DynamicUnbakedModel(
-                        new Identifier[] {
-                                ModelIdentifiers.BELL_WALL_WITH_BELL,
-                                ModelIdentifiers.BELL_WALL
-                        },
-                        ModelSelector.BELL,
-                        DynamicModelEffects.BELL
-                )
-        ));
-        for (DyeColor color : EBEUtil.DEFAULTED_DYE_COLORS) {
-            ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                    Identifier.of("builtin", color != null ? color.getName()+"_shulker_box" : "shulker_box"),
-                    () -> new DynamicUnbakedModel(
-                            new Identifier[] {
-                                    ModelIdentifiers.SHULKER_BOXES.get(color),
-                                    ModelIdentifiers.SHULKER_BOX_BOTTOMS.get(color)
-                            },
-                            ModelSelector.SHULKER_BOX,
-                            DynamicModelEffects.SHULKER_BOX
-                    )
-            ));
-        }
-
-        DecoratedPotModelSelector decoratedPotSelector = new DecoratedPotModelSelector();
-        ModelLoadingPlugin.register(new DynamicModelProvidingPlugin(
-                Identifier.of("builtin", "decorated_pot"),
-                () -> new DynamicUnbakedModel(
-                        decoratedPotSelector.createModelIDs(),
-                        decoratedPotSelector,
-                        DynamicModelEffects.DECORATED_POT
-                )
-        ));
+        ModelLoadingPlugin.register(new DynamicModelLoadingPlugin());
     }
 
     public static void setupChests() {
-        BlockRenderLayerMap.INSTANCE.putBlock(Blocks.CHEST, RenderLayer.getCutoutMipped());
-        BlockRenderLayerMap.INSTANCE.putBlock(Blocks.TRAPPED_CHEST, RenderLayer.getCutoutMipped());
-        BlockRenderLayerMap.INSTANCE.putBlock(Blocks.ENDER_CHEST, RenderLayer.getCutoutMipped());
-
-        Function<BlockEntity, Integer> christmasChestSelector = entity -> {
-            int os = DateUtil.isChristmas() ? 3 : 0;
-            ChestType type = entity.getCachedState().get(Properties.CHEST_TYPE);
-            return type == ChestType.RIGHT ? 2 + os : type == ChestType.LEFT ? 1 + os : os;
-        };
         EnhancedBlockEntityRegistry.register(Blocks.CHEST, BlockEntityType.CHEST, BlockEntityRenderCondition.CHEST,
-                new ChestBlockEntityRendererOverride(() -> {
-                    FabricBakedModelManager manager =  MinecraftClient.getInstance().getBakedModelManager();
-                    return new BakedModel[] {
-                            manager.getModel(ModelIdentifiers.CHEST_CENTER_LID),
-                            manager.getModel(ModelIdentifiers.CHEST_LEFT_LID),
-                            manager.getModel(ModelIdentifiers.CHEST_RIGHT_LID),
-                            manager.getModel(ModelIdentifiers.CHRISTMAS_CHEST_CENTER_LID),
-                            manager.getModel(ModelIdentifiers.CHRISTMAS_CHEST_LEFT_LID),
-                            manager.getModel(ModelIdentifiers.CHRISTMAS_CHEST_RIGHT_LID)
-                    };
-                }, christmasChestSelector)
+                BlockEntityRendererOverride.NO_OP
         );
         EnhancedBlockEntityRegistry.register(Blocks.TRAPPED_CHEST, BlockEntityType.TRAPPED_CHEST, BlockEntityRenderCondition.CHEST,
-                new ChestBlockEntityRendererOverride(() -> {
-                    FabricBakedModelManager manager = MinecraftClient.getInstance().getBakedModelManager();
-                    return new BakedModel[] {
-                            manager.getModel(ModelIdentifiers.TRAPPED_CHEST_CENTER_LID),
-                            manager.getModel(ModelIdentifiers.TRAPPED_CHEST_LEFT_LID),
-                            manager.getModel(ModelIdentifiers.TRAPPED_CHEST_RIGHT_LID),
-                            manager.getModel(ModelIdentifiers.CHRISTMAS_CHEST_CENTER_LID),
-                            manager.getModel(ModelIdentifiers.CHRISTMAS_CHEST_LEFT_LID),
-                            manager.getModel(ModelIdentifiers.CHRISTMAS_CHEST_RIGHT_LID)
-                    };
-                }, christmasChestSelector)
+                BlockEntityRendererOverride.NO_OP
         );
         EnhancedBlockEntityRegistry.register(Blocks.ENDER_CHEST, BlockEntityType.ENDER_CHEST, BlockEntityRenderCondition.CHEST,
-                new ChestBlockEntityRendererOverride(() -> {
-                    FabricBakedModelManager manager = MinecraftClient.getInstance().getBakedModelManager();
-                    return new BakedModel[] { manager.getModel(ModelIdentifiers.ENDER_CHEST_CENTER_LID) };
-                }, entity -> 0)
+                BlockEntityRendererOverride.NO_OP
         );
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.CHEST);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.TRAPPED_CHEST);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.ENDER_CHEST);
+        for (var copperChest : COPPER_CHESTS) {
+            EnhancedBlockEntityRegistry.register(copperChest.block(), BlockEntityType.CHEST, BlockEntityRenderCondition.CHEST,
+                    BlockEntityRendererOverride.NO_OP);
+            EnhancedBlockEntityRegistry.registerStaticModelBlock(copperChest.block());
+        }
     }
 
     public static void setupSigns() {
@@ -376,8 +222,9 @@ public enum EBESetup {;
                 Blocks.PALE_OAK_SIGN, Blocks.PALE_OAK_WALL_SIGN
         }) {
             EnhancedBlockEntityRegistry.register(sign, BlockEntityType.SIGN, BlockEntityRenderCondition.SIGN,
-                    new SignBlockEntityRendererOverride()
+                    BlockEntityRendererOverride.NO_OP
             );
+            EnhancedBlockEntityRegistry.registerStaticModelBlock(sign);
         }
 
         for (var sign : new Block[] {
@@ -395,16 +242,17 @@ public enum EBESetup {;
                 Blocks.PALE_OAK_HANGING_SIGN, Blocks.PALE_OAK_WALL_HANGING_SIGN
         }) {
             EnhancedBlockEntityRegistry.register(sign, BlockEntityType.HANGING_SIGN, BlockEntityRenderCondition.SIGN,
-                    new SignBlockEntityRendererOverride()
+                    BlockEntityRendererOverride.NO_OP
             );
-            BlockRenderLayerMap.INSTANCE.putBlock(sign, RenderLayer.getCutout());
+            EnhancedBlockEntityRegistry.registerStaticModelBlock(sign);
         }
     }
 
     public static void setupBells() {
         EnhancedBlockEntityRegistry.register(Blocks.BELL, BlockEntityType.BELL, BlockEntityRenderCondition.BELL,
-                new BellBlockEntityRendererOverride()
+                BlockEntityRendererOverride.NO_OP
         );
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BELL);
     }
 
     public static void setupBeds() {
@@ -424,25 +272,83 @@ public enum EBESetup {;
         EnhancedBlockEntityRegistry.register(Blocks.RED_BED, BlockEntityType.BED, BlockEntityRenderCondition.NEVER, BlockEntityRendererOverride.NO_OP);
         EnhancedBlockEntityRegistry.register(Blocks.WHITE_BED, BlockEntityType.BED, BlockEntityRenderCondition.NEVER, BlockEntityRendererOverride.NO_OP);
         EnhancedBlockEntityRegistry.register(Blocks.YELLOW_BED, BlockEntityType.BED, BlockEntityRenderCondition.NEVER, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BLACK_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BLUE_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BROWN_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.CYAN_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.GRAY_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.GREEN_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.LIGHT_BLUE_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.LIGHT_GRAY_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.LIME_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.MAGENTA_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.ORANGE_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.PINK_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.PURPLE_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.RED_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.WHITE_BED);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.YELLOW_BED);
     }
 
     public static void setupShulkerBoxes() {
-        for (DyeColor color : EBEUtil.DEFAULTED_DYE_COLORS) {
-            var block = ShulkerBoxBlock.get(color);
-            BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getCutoutMipped());
-            EnhancedBlockEntityRegistry.register(block, BlockEntityType.SHULKER_BOX, BlockEntityRenderCondition.SHULKER_BOX,
-                    new ShulkerBoxBlockEntityRendererOverride((map) -> {
-                        var models =  MinecraftClient.getInstance().getBakedModelManager();
-                        for (DyeColor dc : EBEUtil.DEFAULTED_DYE_COLORS) {
-                            map.put(dc, models.getModel(ModelIdentifiers.SHULKER_BOX_LIDS.get(dc)));
-                        }
-                    })
-            );
-        }
+        EnhancedBlockEntityRegistry.register(Blocks.SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.WHITE_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.ORANGE_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.MAGENTA_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.LIGHT_BLUE_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.YELLOW_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.LIME_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.PINK_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.GRAY_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.LIGHT_GRAY_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.CYAN_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.PURPLE_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.BLUE_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.BROWN_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.GREEN_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.RED_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.register(Blocks.BLACK_SHULKER_BOX, BlockEntityType.SHULKER_BOX,
+                BlockEntityRenderCondition.SHULKER_BOX, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.WHITE_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.ORANGE_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.MAGENTA_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.LIGHT_BLUE_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.YELLOW_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.LIME_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.PINK_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.GRAY_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.LIGHT_GRAY_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.CYAN_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.PURPLE_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BLUE_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BROWN_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.GREEN_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.RED_SHULKER_BOX);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BLACK_SHULKER_BOX);
     }
 
     public static void setupDecoratedPots() {
         EnhancedBlockEntityRegistry.register(Blocks.DECORATED_POT, BlockEntityType.DECORATED_POT,
-                BlockEntityRenderCondition.DECORATED_POT, new DecoratedPotBlockEntityRendererOverride());
+                BlockEntityRenderCondition.DECORATED_POT, BlockEntityRendererOverride.NO_OP);
+        EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.DECORATED_POT);
     }
+
+    private record CopperChest(String blockName, String textureName, Block block) {}
 }

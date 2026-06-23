@@ -3,19 +3,21 @@ package foundationgames.enhancedblockentities.client.resource;
 import foundationgames.enhancedblockentities.client.resource.template.TemplateLoader;
 import foundationgames.enhancedblockentities.client.resource.template.TemplateProvider;
 import net.minecraft.SharedConstants;
-import net.minecraft.client.texture.atlas.AtlasSource;
-import net.minecraft.client.texture.atlas.DirectoryAtlasSource;
-import net.minecraft.client.texture.atlas.SingleAtlasSource;
-import net.minecraft.resource.InputSupplier;
-import net.minecraft.resource.ResourcePack;
-import net.minecraft.resource.ResourcePackInfo;
-import net.minecraft.resource.ResourcePackSource;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.resource.metadata.PackResourceMetadata;
-import net.minecraft.resource.metadata.ResourceMetadataMap;
-import net.minecraft.resource.metadata.ResourceMetadataSerializer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.texture.atlas.SpriteSource;
+import net.minecraft.client.renderer.texture.atlas.sources.DirectoryLister;
+import net.minecraft.client.renderer.texture.atlas.sources.SingleFile;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackLocationInfo;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.metadata.MetadataSectionType;
+import net.minecraft.server.packs.metadata.pack.PackFormat;
+import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
+import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.server.packs.resources.ResourceMetadata;
+import net.minecraft.util.InclusiveRange;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -28,48 +30,52 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 
-public class EBEPack implements ResourcePack {
-    public static final Identifier BLOCK_ATLAS = Identifier.of("blocks");
+public class EBEPack implements PackResources {
+    public static final Identifier BLOCK_ATLAS = Identifier.withDefaultNamespace("blocks");
 
     private final Map<Identifier, AtlasResourceBuilder> atlases = new HashMap<>();
-    private final Map<Identifier, InputSupplier<InputStream>> resources = new HashMap<>();
+    private final Map<Identifier, IoSupplier<InputStream>> resources = new HashMap<>();
     private final Set<String> namespaces = new HashSet<>();
 
     private final TemplateLoader templates;
+    private final PackMetadataSection packMeta;
+    private final PackLocationInfo packInfo;
 
-    private final PackResourceMetadata packMeta;
-    private final ResourcePackInfo packInfo;
-
+    @SuppressWarnings({ "deprecation", "null" })
     public EBEPack(Identifier id, TemplateLoader templates) {
         this.templates = templates;
-
-        this.packMeta = new PackResourceMetadata(
-                Text.literal("Enhanced Block Entities Resources"),
-                SharedConstants.getGameVersion().getResourceVersion(ResourceType.CLIENT_RESOURCES),
-                Optional.empty());
-
-        this.packInfo = new ResourcePackInfo(id.toString(), Text.literal(id.toString()), ResourcePackSource.BUILTIN, Optional.empty());
+        var format = PackFormat.of(SharedConstants.RESOURCE_PACK_FORMAT_MAJOR, SharedConstants.RESOURCE_PACK_FORMAT_MINOR);
+        this.packMeta = new PackMetadataSection(
+                Component.literal("Enhanced Block Entities Resources"),
+                new InclusiveRange<>(format));
+        this.packInfo = new PackLocationInfo(id.toString(), Component.literal(id.toString()), PackSource.BUILT_IN, Optional.empty());
     }
 
-    public void addAtlasSprite(Identifier atlas, AtlasSource source) {
+    public void addAtlasSprite(Identifier atlas, SpriteSource source) {
         var resource = this.atlases.computeIfAbsent(atlas, id -> new AtlasResourceBuilder());
         resource.put(source);
 
-        this.addResource(Identifier.of(atlas.getNamespace(), "atlases/" + atlas.getPath() + ".json"), resource::toBytes);
+        this.addResource(Identifier.fromNamespaceAndPath(atlas.getNamespace(), "atlases/" + atlas.getPath() + ".json"), resource::toBytes);
     }
 
+    @SuppressWarnings("null")
     public void addSingleBlockSprite(Identifier path) {
-        this.addAtlasSprite(BLOCK_ATLAS, new SingleAtlasSource(path, Optional.empty()));
+        this.addAtlasSprite(BLOCK_ATLAS, new SingleFile(path, Optional.empty()));
     }
 
+    @SuppressWarnings("null")
+    public void addSingleBlockSprite(Identifier resourcePath, Identifier spriteId) {
+        this.addAtlasSprite(BLOCK_ATLAS, new SingleFile(resourcePath, Optional.of(spriteId)));
+    }
+
+    @SuppressWarnings("null")
     public void addDirBlockSprites(String dir, String prefix) {
-        this.addAtlasSprite(BLOCK_ATLAS, new DirectoryAtlasSource(dir, prefix));
+        this.addAtlasSprite(BLOCK_ATLAS, new DirectoryLister(dir, prefix));
     }
 
-    public void addResource(Identifier id, InputSupplier<byte[]> resource) {
+    public void addResource(Identifier id, IoSupplier<byte[]> resource) {
         this.namespaces.add(id.getNamespace());
         this.resources.put(id, new LazyBufferedResource(resource));
     }
@@ -91,48 +97,59 @@ public class EBEPack implements ResourcePack {
         this.addTemplateResource(id, t -> t.load(templatePath, d -> {}));
     }
 
+    @SuppressWarnings("null")
     @Nullable
     @Override
-    public InputSupplier<InputStream> openRoot(String... segments) {
-        return null; // Provide no root resources
+    public IoSupplier<InputStream> getRootResource(String... segments) {
+        return null;
     }
 
+    @SuppressWarnings("null")
     @Nullable
     @Override
-    public InputSupplier<InputStream> open(ResourceType type, Identifier id) {
-        if (type != ResourceType.CLIENT_RESOURCES) return null;
+    public IoSupplier<InputStream> getResource(PackType type, Identifier id) {
+        if (type != PackType.CLIENT_RESOURCES) {
+            return null;
+        }
 
         return this.resources.get(id);
     }
 
+    @SuppressWarnings("null")
     @Override
-    public void findResources(ResourceType type, String namespace, String prefix, ResultConsumer consumer) {
-        if (type != ResourceType.CLIENT_RESOURCES) return;
+    public void listResources(PackType type, String namespace, String prefix, ResourceOutput output) {
+        if (type != PackType.CLIENT_RESOURCES) {
+            return;
+        }
 
         for (var entry : this.resources.entrySet()) {
             var id = entry.getKey();
-
-            if (id.getNamespace().startsWith(namespace) && id.getPath().startsWith(prefix)) {
-                consumer.accept(id, entry.getValue());
+            if (id.getNamespace().equals(namespace) && id.getPath().startsWith(prefix)) {
+                output.accept(id, entry.getValue());
             }
         }
     }
 
+    @SuppressWarnings("null")
     @Override
-    public Set<String> getNamespaces(ResourceType type) {
-        if (type != ResourceType.CLIENT_RESOURCES) return Set.of();
+    public Set<String> getNamespaces(PackType type) {
+        if (type != PackType.CLIENT_RESOURCES) {
+            return Set.of();
+        }
 
         return this.namespaces;
     }
 
+    @SuppressWarnings("null")
     @Nullable
     @Override
-    public <T> T parseMetadata(ResourceMetadataSerializer<T> meta) {
-        return ResourceMetadataMap.of(PackResourceMetadata.SERIALIZER, this.packMeta).get(meta);
+    public <T> T getMetadataSection(MetadataSectionType<T> meta) throws IOException {
+        return ResourceMetadata.of(PackMetadataSection.CLIENT_TYPE, this.packMeta).getSection(meta).orElse(null);
     }
 
+    @SuppressWarnings("null")
     @Override
-    public ResourcePackInfo getInfo() {
+    public PackLocationInfo location() {
         return this.packInfo;
     }
 
@@ -149,9 +166,8 @@ public class EBEPack implements ResourcePack {
 
             Files.createDirectories(file.getParent());
 
-            try (var out = Files.newOutputStream(file)) {
-                var in = entry.getValue().get();
-
+            try (var out = Files.newOutputStream(file);
+                 var in = entry.getValue().get()) {
                 int i;
                 while ((i = in.read()) >= 0) {
                     out.write(i);
@@ -160,32 +176,11 @@ public class EBEPack implements ResourcePack {
         }
     }
 
-    public static class PropertyBuilder {
-        private Properties properties = new Properties();
-
-        private PropertyBuilder() {}
-
-        public PropertyBuilder def(String k, String v) {
-            if (this.properties != null) {
-                this.properties.setProperty(k, v);
-            }
-
-            return this;
-        }
-
-        private Properties build() {
-            var properties = this.properties;
-            this.properties = null;
-
-            return properties;
-        }
-    }
-
-    public static class LazyBufferedResource implements InputSupplier<InputStream> {
-        private final InputSupplier<byte[]> backing;
+    public static class LazyBufferedResource implements IoSupplier<InputStream> {
+        private final IoSupplier<byte[]> backing;
         private byte[] buffer = null;
 
-        public LazyBufferedResource(InputSupplier<byte[]> backing) {
+        public LazyBufferedResource(IoSupplier<byte[]> backing) {
             this.backing = backing;
         }
 

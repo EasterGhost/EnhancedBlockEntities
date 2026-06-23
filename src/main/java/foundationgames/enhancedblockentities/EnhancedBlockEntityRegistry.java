@@ -2,9 +2,9 @@ package foundationgames.enhancedblockentities;
 
 import foundationgames.enhancedblockentities.client.render.BlockEntityRenderCondition;
 import foundationgames.enhancedblockentities.client.render.BlockEntityRendererOverride;
-import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.Pair;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import com.mojang.datafixers.util.Pair;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +14,7 @@ import java.util.Set;
 public final class EnhancedBlockEntityRegistry {
     public static final Map<BlockEntityType<?>, Pair<BlockEntityRenderCondition, BlockEntityRendererOverride>> ENTITIES = new HashMap<>();
     public static final Set<Block> BLOCKS = new HashSet<>();
+    public static final Set<Block> STATIC_MODEL_BLOCKS = new HashSet<>();
 
     private EnhancedBlockEntityRegistry() {}
 
@@ -22,8 +23,13 @@ public final class EnhancedBlockEntityRegistry {
         BLOCKS.add(block);
     }
 
+    public static void registerStaticModelBlock(Block block) {
+        STATIC_MODEL_BLOCKS.add(block);
+    }
+
     public static void clear() {
         ENTITIES.clear();
         BLOCKS.clear();
+        STATIC_MODEL_BLOCKS.clear();
     }
 }

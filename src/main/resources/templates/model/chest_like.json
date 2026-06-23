@@ -1,7 +1,8 @@
 {
+  ![ao]
   "parent": "block/![parent]",
   "textures": {
     ![particle]
-    "chest": "entity/chest/![chest_tex]"
+    "chest": "![chest_tex]"
   }
 }

@@ -2,7 +2,7 @@
 	"parent": "block/block",
 	"texture_size": [32, 32],
 	"textures": {
-		"0": "entity/decorated_pot/decorated_pot_base",
+		"0": "ebe:entity/decorated_pot/decorated_pot_base",
 		"particle": "minecraft:block/terracotta"
 	},
 	"elements": [

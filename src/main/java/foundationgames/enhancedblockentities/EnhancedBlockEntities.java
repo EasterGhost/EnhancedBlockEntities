@@ -1,19 +1,18 @@
 package foundationgames.enhancedblockentities;
 
-import foundationgames.enhancedblockentities.client.model.ModelIdentifiers;
+import foundationgames.enhancedblockentities.client.resource.template.TemplateLoader;
 import foundationgames.enhancedblockentities.client.model.item.EBEIsChristmasProperty;
 import foundationgames.enhancedblockentities.client.render.SignRenderManager;
-import foundationgames.enhancedblockentities.client.resource.template.TemplateLoader;
 import foundationgames.enhancedblockentities.config.EBEConfig;
+import foundationgames.enhancedblockentities.mixin.ConditionalItemModelPropertiesAccessor;
 import foundationgames.enhancedblockentities.util.EBEUtil;
 import foundationgames.enhancedblockentities.util.ResourceUtil;
 import foundationgames.enhancedblockentities.util.WorldUtil;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.item.property.bool.BooleanProperties;
+import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +29,7 @@ public final class EnhancedBlockEntities implements ClientModInitializer {
     public static final String API_V1 = "ebe_v1";
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "null" })
     public void onInitializeClient() {
         FabricLoader.getInstance().getModContainer(ID).ifPresent(mod -> {
             var roots = mod.getRootPaths();
@@ -45,12 +44,11 @@ public final class EnhancedBlockEntities implements ClientModInitializer {
             init.getEntrypoint().accept((Runnable) EnhancedBlockEntities::load);
         }
 
-        BooleanProperties.ID_MAPPER.put(EBEUtil.id("ebe_is_christmas"), EBEIsChristmasProperty.CODEC);
+        ClientTickEvents.END_LEVEL_TICK.register(WorldUtil.EVENT_LISTENER);
+        LevelRenderEvents.END_MAIN.register(SignRenderManager::endFrame);
+        ConditionalItemModelPropertiesAccessor.enhanced_bes$getIdMapper()
+                .put(EBEUtil.id("ebe_is_christmas"), EBEIsChristmasProperty.CODEC);
 
-        WorldRenderEvents.END.register(SignRenderManager::endFrame);
-        ClientTickEvents.END_WORLD_TICK.register(WorldUtil.EVENT_LISTENER);
-
-        ModelIdentifiers.init();
         EBESetup.setupResourceProviders();
 
         load();
@@ -59,9 +57,9 @@ public final class EnhancedBlockEntities implements ClientModInitializer {
     public static void reload(ReloadType type) {
         load();
         if (type == ReloadType.WORLD) {
-            MinecraftClient.getInstance().worldRenderer.reload();
+            Minecraft.getInstance().levelRenderer.allChanged();
         } else if (type == ReloadType.RESOURCES) {
-            MinecraftClient.getInstance().reloadResources();
+            Minecraft.getInstance().reloadResourcePacks();
         }
     }
 
