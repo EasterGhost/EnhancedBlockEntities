@@ -11,7 +11,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ConfigButtonOption {
@@ -38,10 +37,10 @@ public class ConfigButtonOption {
                 int x,
                 int y,
                 int width,
-                Consumer<Boolean> changed
+                OptionInstance.ValueUpdateListener<? super Boolean> changed
         ) {
             return option -> Button.builder(Component.translatable("option.ebe.config"), button ->
-                    Minecraft.getInstance().setScreen(new EBEConfigScreen(parent))
+                    Minecraft.getInstance().setScreenAndShow(new EBEConfigScreen(parent))
             ).bounds(x, y, width, 20).build();
         }
 

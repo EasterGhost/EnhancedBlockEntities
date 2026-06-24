@@ -7,16 +7,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LidBlockEntity;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
 public class ChestBlockEntityRendererOverride extends BlockEntityRendererOverride {
-    @Override
-    public void render(BlockEntityRenderer<BlockEntity, ?> renderer, BlockEntity blockEntity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {}
-
     @SuppressWarnings("null")
     public static LidBlockEntity getLidAnimationHolder(BlockEntity blockEntity, float tickDelta) {
         LidBlockEntity chest = (LidBlockEntity)blockEntity;

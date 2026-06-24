@@ -57,7 +57,11 @@ public final class EnhancedBlockEntities implements ClientModInitializer {
     public static void reload(ReloadType type) {
         load();
         if (type == ReloadType.WORLD) {
-            Minecraft.getInstance().levelRenderer.allChanged();
+            var client = Minecraft.getInstance();
+            if (client.level != null) {
+                client.levelRenderer.invalidateCompiledGeometry(client.level, client.options,
+                        client.gameRenderer.mainCamera(), client.getBlockColors());
+            }
         } else if (type == ReloadType.RESOURCES) {
             Minecraft.getInstance().reloadResourcePacks();
         }

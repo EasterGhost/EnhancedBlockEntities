@@ -22,12 +22,12 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modCompileClasspath "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modCompileClasspath "net.fabricmc.fabric-api:fabric-model-loading-api-v1:8.0.1+c7e428fd47"
-	modCompileClasspath "net.fabricmc.fabric-api:fabric-renderer-api-v1:12.0.0+51b152e147"
-	modCompileClasspath "net.fabricmc.fabric-api:fabric-rendering-v1:23.0.4+c7e428fd47"
+	modCompileClasspath "net.fabricmc.fabric-api:fabric-model-loading-api-v1:8.0.13+c80601bb9e"
+	modCompileClasspath "net.fabricmc.fabric-api:fabric-renderer-api-v1:14.1.0+2b0d8a229e"
+	modCompileClasspath "net.fabricmc.fabric-api:fabric-rendering-v1:25.2.0+2b0d8a229e"
 
 	// Mod Menu because config screen access from another place
-	modCompileClasspath "com.terraformersmc:modmenu:${project.modmenu_version}"
+	compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	// Sodium for compatibility
 	modCompileClasspath "maven.modrinth:sodium:${project.sodium_version}"

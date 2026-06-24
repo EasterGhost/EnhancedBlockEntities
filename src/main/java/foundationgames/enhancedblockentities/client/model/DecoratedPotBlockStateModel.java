@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
@@ -23,12 +24,14 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 public class DecoratedPotBlockStateModel extends WrapperBlockStateModel {
+    private static final Map<ResourceKey<Item>, ResourceKey<DecoratedPotPattern>> PATTERNS_BY_ITEM = createPatternMap();
     private static final Direction[] DECORATION_SIDES = {
             Direction.NORTH,
             Direction.WEST,
@@ -169,7 +172,9 @@ public class DecoratedPotBlockStateModel extends WrapperBlockStateModel {
 
     @SuppressWarnings("null")
     private BlockStateModel patternModel(Optional<Item> item, Direction side) {
-        var pattern = item.map(DecoratedPotPatterns::getPatternFromItem).orElse(DecoratedPotPatterns.BLANK);
+        var pattern = item.flatMap(BuiltInRegistries.ITEM::getResourceKey)
+                .map(PATTERNS_BY_ITEM::get)
+                .orElse(DecoratedPotPatterns.BLANK);
         var sideModels = this.patternModels.get(pattern);
 
         if (sideModels == null) {
@@ -181,5 +186,11 @@ public class DecoratedPotBlockStateModel extends WrapperBlockStateModel {
         }
 
         return this.wrapped;
+    }
+
+    private static Map<ResourceKey<Item>, ResourceKey<DecoratedPotPattern>> createPatternMap() {
+        var patterns = new HashMap<ResourceKey<Item>, ResourceKey<DecoratedPotPattern>>();
+        DecoratedPotPatterns.itemToPatternMappings(patterns::put);
+        return patterns;
     }
 }

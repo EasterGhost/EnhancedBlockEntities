@@ -68,28 +68,24 @@ public enum ExperimentalSetup {;
     }
 
     public static void setupBeds(ResourceManager manager) throws IOException {
-        EBEPack p = ResourceUtil.getTopLevelPack();
-
-        for (var color : DyeColor.values()) {
-            ResourceHacks.addBedParticleTexture(color.getName(), "entity/bed/" + color.getName(), manager, p);
-        }
+        // 26.2 beds no longer use the old single entity/bed texture.
     }
 
     public static void setupSigns(ResourceManager manager) throws IOException {
         EBEPack p = ResourceUtil.getTopLevelPack();
 
-        ResourceHacks.addSignParticleTexture("oak", "entity/signs/oak", manager, p);
-        ResourceHacks.addSignParticleTexture("birch", "entity/signs/birch", manager, p);
-        ResourceHacks.addSignParticleTexture("spruce", "entity/signs/spruce", manager, p);
-        ResourceHacks.addSignParticleTexture("jungle", "entity/signs/jungle", manager, p);
-        ResourceHacks.addSignParticleTexture("acacia", "entity/signs/acacia", manager, p);
-        ResourceHacks.addSignParticleTexture("dark_oak", "entity/signs/dark_oak", manager, p);
-        ResourceHacks.addSignParticleTexture("mangrove", "entity/signs/mangrove", manager, p);
-        ResourceHacks.addSignParticleTexture("cherry", "entity/signs/cherry", manager, p);
-        ResourceHacks.addSignParticleTexture("crimson", "entity/signs/crimson", manager, p);
-        ResourceHacks.addSignParticleTexture("warped", "entity/signs/warped", manager, p);
-        ResourceHacks.addSignParticleTexture("bamboo", "entity/signs/bamboo", manager, p);
-        ResourceHacks.addSignParticleTexture("pale_oak", "entity/signs/pale_oak", manager, p);
+        ResourceHacks.addSignParticleTexture("oak", "block/oak_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("birch", "block/birch_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("spruce", "block/spruce_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("jungle", "block/jungle_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("acacia", "block/acacia_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("dark_oak", "block/dark_oak_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("mangrove", "block/mangrove_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("cherry", "block/cherry_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("crimson", "block/crimson_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("warped", "block/warped_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("bamboo", "block/bamboo_sign", manager, p);
+        ResourceHacks.addSignParticleTexture("pale_oak", "block/pale_oak_sign", manager, p);
     }
 
     public static void cacheResources(ResourceManager resources) {

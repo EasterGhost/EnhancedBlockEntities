@@ -220,14 +220,14 @@ public enum ResourceUtil {;
 
     public static void addSignTypeModels(String signType, EBEPack pack) {
         var signName = signType + "_sign";
-        var signTex = spriteAlias("entity/signs/" + signType);
+        var signTex = spriteAlias("block/" + signName);
         addRotation16Models(
                 signParticle(signName) + kv("sign", signTex),
                 "block/template_sign", "block/" + signName, ResourceUtil::signAOSuffix, pack);
 
         var hangingTexDef = list(
-                kv("sign", spriteAlias("entity/signs/hanging/" + signType)),
-                kv("particle", spriteAlias("block/particle_hanging_sign_" + signType))
+                kv("sign", spriteAlias("block/" + signType + "_hanging_sign")),
+                kv("particle", spriteAlias("block/" + signType + "_hanging_sign"))
         );
         addRotation16Models(hangingTexDef, "block/template_hanging_sign", "block/" + signType + "_hanging_sign",
                 ResourceUtil::signAOSuffix, pack);
@@ -361,7 +361,7 @@ public enum ResourceUtil {;
 
     public static void addDecoratedPotPatternModels(ResourceKey<DecoratedPotPattern> patternKey, EBEPack pack) {
         @SuppressWarnings("null")
-        var patternSprite = Sheets.getDecoratedPotSprite(patternKey).texture();
+        var patternSprite = decoratedPotPatternSprite(patternKey);
         addAliasedBlockSprite(patternSprite, pack);
 
         for (Direction dir : EBEUtil.HORIZONTAL_DIRECTIONS) {
@@ -371,6 +371,16 @@ public enum ResourceUtil {;
                     vanillaId("block/" + patternKey.identifier().getPath() + "_" + dir.getName()),
                     pack);
         }
+    }
+
+    private static Identifier decoratedPotPatternSprite(ResourceKey<DecoratedPotPattern> patternKey) {
+        var id = patternKey.identifier();
+        var path = id.getPath();
+        if ("blank".equals(path)) {
+            return Identifier.withDefaultNamespace("entity/decorated_pot/decorated_pot_side");
+        }
+
+        return Identifier.fromNamespaceAndPath(id.getNamespace(), "entity/decorated_pot/" + path + "_pottery_pattern");
     }
 
     public static void resetBasePack() {

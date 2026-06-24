@@ -1,7 +1,6 @@
 package foundationgames.enhancedblockentities.util;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.BlockPos;
@@ -19,8 +18,10 @@ public enum WorldUtil implements ClientTickEvents.EndLevelTick {
 
     @SuppressWarnings("null")
     public static void rebuildChunk(Level world, BlockPos pos) {
-        var state = world.getBlockState(pos);
-        Minecraft.getInstance().levelRenderer.blockChanged(world, pos, state, state, 8);
+        if (world instanceof ClientLevel clientLevel) {
+            var state = clientLevel.getBlockState(pos);
+            clientLevel.sendBlockUpdated(pos, state, state, 8);
+        }
     }
 
     @SuppressWarnings("null")

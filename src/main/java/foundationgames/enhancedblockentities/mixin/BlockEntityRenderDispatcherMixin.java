@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.BlockEntityTypes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,14 +17,15 @@ public class BlockEntityRenderDispatcherMixin {
     @SuppressWarnings("null")
     @Inject(method = "tryExtractRenderState", at = @At("HEAD"), cancellable = true)
     private <E extends BlockEntity, S extends BlockEntityRenderState> void enhanced_bes$suppressStaticModelBlockEntityRenderer(
-            E blockEntity, float tickDelta, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, CallbackInfoReturnable<S> cir) {
+            E blockEntity, float tickDelta, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, boolean canRenderNameTag,
+            CallbackInfoReturnable<S> cir) {
         if (this.enhanced_bes$shouldSuppressSignText(blockEntity)) {
             cir.setReturnValue(null);
             return;
         }
 
-        if (blockEntity.getType() != BlockEntityType.SIGN
-                && blockEntity.getType() != BlockEntityType.HANGING_SIGN
+        if (blockEntity.getType() != BlockEntityTypes.SIGN
+                && blockEntity.getType() != BlockEntityTypes.HANGING_SIGN
                 && !this.enhanced_bes$shouldUseVanillaRenderer(blockEntity)
                 && EnhancedBlockEntityRegistry.STATIC_MODEL_BLOCKS.contains(blockEntity.getBlockState().getBlock())) {
             cir.setReturnValue(null);
@@ -39,7 +40,7 @@ public class BlockEntityRenderDispatcherMixin {
     }
 
     private boolean enhanced_bes$shouldSuppressSignText(BlockEntity blockEntity) {
-        if (blockEntity.getType() != BlockEntityType.SIGN && blockEntity.getType() != BlockEntityType.HANGING_SIGN) {
+        if (blockEntity.getType() != BlockEntityTypes.SIGN && blockEntity.getType() != BlockEntityTypes.HANGING_SIGN) {
             return false;
         }
 

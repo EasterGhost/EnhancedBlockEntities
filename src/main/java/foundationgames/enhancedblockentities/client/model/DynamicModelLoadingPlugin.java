@@ -101,14 +101,7 @@ public class DynamicModelLoadingPlugin implements ModelLoadingPlugin {
     }
 
     private boolean isVanillaCopperChest(Block block) {
-        return block == Blocks.COPPER_CHEST
-                || block == Blocks.EXPOSED_COPPER_CHEST
-                || block == Blocks.WEATHERED_COPPER_CHEST
-                || block == Blocks.OXIDIZED_COPPER_CHEST
-                || block == Blocks.WAXED_COPPER_CHEST
-                || block == Blocks.WAXED_EXPOSED_COPPER_CHEST
-                || block == Blocks.WAXED_WEATHERED_COPPER_CHEST
-                || block == Blocks.WAXED_OXIDIZED_COPPER_CHEST;
+        return Blocks.COPPER_CHEST.asList().contains(block);
     }
 
     private BlockStateModel.UnbakedRoot wrapSingleStateHolderModel(BlockStateModel.UnbakedRoot fallback,
@@ -122,23 +115,7 @@ public class DynamicModelLoadingPlugin implements ModelLoadingPlugin {
     }
 
     private boolean isVanillaShulkerBox(Block block) {
-        return block == Blocks.SHULKER_BOX
-                || block == Blocks.WHITE_SHULKER_BOX
-                || block == Blocks.ORANGE_SHULKER_BOX
-                || block == Blocks.MAGENTA_SHULKER_BOX
-                || block == Blocks.LIGHT_BLUE_SHULKER_BOX
-                || block == Blocks.YELLOW_SHULKER_BOX
-                || block == Blocks.LIME_SHULKER_BOX
-                || block == Blocks.PINK_SHULKER_BOX
-                || block == Blocks.GRAY_SHULKER_BOX
-                || block == Blocks.LIGHT_GRAY_SHULKER_BOX
-                || block == Blocks.CYAN_SHULKER_BOX
-                || block == Blocks.PURPLE_SHULKER_BOX
-                || block == Blocks.BLUE_SHULKER_BOX
-                || block == Blocks.BROWN_SHULKER_BOX
-                || block == Blocks.GREEN_SHULKER_BOX
-                || block == Blocks.RED_SHULKER_BOX
-                || block == Blocks.BLACK_SHULKER_BOX;
+        return block == Blocks.SHULKER_BOX || Blocks.DYED_SHULKER_BOX.asList().contains(block);
     }
 
     @SuppressWarnings("null")
