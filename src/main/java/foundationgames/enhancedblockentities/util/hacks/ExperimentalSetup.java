@@ -5,8 +5,6 @@ import foundationgames.enhancedblockentities.client.resource.EBEPack;
 import foundationgames.enhancedblockentities.config.EBEConfig;
 import foundationgames.enhancedblockentities.util.ResourceUtil;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.world.item.DyeColor;
-
 import java.io.IOException;
 
 public enum ExperimentalSetup {;
@@ -23,17 +21,6 @@ public enum ExperimentalSetup {;
             } catch (IOException e) {
                 EnhancedBlockEntities.LOG.error("Error loading experimental chests", e);
                 config.experimentalChests = false;
-                config.save();
-            }
-        }
-        if (config.renderEnhancedBeds && config.experimentalBeds) {
-            try {
-                if (RESOURCES != null) {
-                    setupBeds(RESOURCES);
-                }
-            } catch (IOException e) {
-                EnhancedBlockEntities.LOG.error("Error loading experimental beds", e);
-                config.experimentalBeds = false;
                 config.save();
             }
         }
@@ -65,10 +52,6 @@ public enum ExperimentalSetup {;
         ResourceHacks.addChestParticleTexture("waxed_exposed_copper_chest", "entity/chest/copper_exposed", manager, p);
         ResourceHacks.addChestParticleTexture("waxed_weathered_copper_chest", "entity/chest/copper_weathered", manager, p);
         ResourceHacks.addChestParticleTexture("waxed_oxidized_copper_chest", "entity/chest/copper_oxidized", manager, p);
-    }
-
-    public static void setupBeds(ResourceManager manager) throws IOException {
-        // 26.2 beds no longer use the old single entity/bed texture.
     }
 
     public static void setupSigns(ResourceManager manager) throws IOException {

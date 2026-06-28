@@ -135,10 +135,6 @@ public enum EBESetup {;
         ResourceUtil.getBasePack().addSingleBlockSprite(Identifier.withDefaultNamespace("entity/bell/bell_body"));
     }
 
-    public static void setupRRPBeds() {
-        // 26.2 beds are already vanilla block models and no longer have a block entity renderer.
-    }
-
     public static void setupRRPShulkerBoxes() {
         EBEPack p = ResourceUtil.getBasePack();
         EBEPack pCompat = ResourceUtil.getPackForCompat();
@@ -239,10 +235,6 @@ public enum EBESetup {;
                 BlockEntityRendererOverride.NO_OP
         );
         EnhancedBlockEntityRegistry.registerStaticModelBlock(Blocks.BELL);
-    }
-
-    public static void setupBeds() {
-        // 26.2 beds are already vanilla block models and no longer have a block entity renderer.
     }
 
     public static void setupShulkerBoxes() {

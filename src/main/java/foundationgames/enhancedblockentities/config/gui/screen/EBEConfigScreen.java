@@ -81,12 +81,6 @@ public class EBEConfigScreen extends Screen {
                 new EBEOption(EBEConfig.RENDER_ENHANCED_BELLS_KEY, BOOLEAN_OPTIONS, configView, false, TextPalette.ON_OFF, ReloadType.RESOURCES),
                 new EBEOption(EBEConfig.BELL_AO_KEY, BOOLEAN_OPTIONS, configView, false, TextPalette.ON_OFF, ReloadType.RESOURCES));
 
-        this.addSection("text.ebe.bed_options");
-        this.addOptionRow(
-                new EBEOption(EBEConfig.RENDER_ENHANCED_BEDS_KEY, BOOLEAN_OPTIONS, configView, false, TextPalette.ON_OFF, ReloadType.RESOURCES),
-                new EBEOption(EBEConfig.EXPERIMENTAL_BEDS_KEY, BOOLEAN_OPTIONS, configView, false, TextPalette.ON_OFF, ReloadType.RESOURCES));
-        this.addOptionRow(new EBEOption(EBEConfig.BED_AO_KEY, BOOLEAN_OPTIONS, configView, false, TextPalette.ON_OFF, ReloadType.RESOURCES));
-
         this.addSection("text.ebe.shulker_box_options");
         this.addOptionRow(
                 new EBEOption(EBEConfig.RENDER_ENHANCED_SHULKER_BOXES_KEY, BOOLEAN_OPTIONS, configView, false, TextPalette.ON_OFF, ReloadType.RESOURCES),

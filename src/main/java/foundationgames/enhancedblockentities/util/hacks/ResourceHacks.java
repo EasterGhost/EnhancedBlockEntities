@@ -32,15 +32,6 @@ public enum ResourceHacks {;
         );
     }
 
-    public static void addBedParticleTexture(String bedColor, String bedTexture, ResourceManager manager, EBEPack pack) throws IOException {
-        cropAndPutTexture(
-                Identifier.withDefaultNamespace("textures/" + bedTexture + ".png"),
-                Identifier.withDefaultNamespace("textures/block/" + bedColor + "_bed_particle.png"),
-                manager, pack,
-                18f / 64, 6f / 64, 34f / 64, 22f / 64
-        );
-    }
-
     public static void addSignParticleTexture(String signType, String signTexture, ResourceManager manager, EBEPack pack) throws IOException {
         cropAndPutTexture(
                 Identifier.withDefaultNamespace("textures/" + signTexture + ".png"),

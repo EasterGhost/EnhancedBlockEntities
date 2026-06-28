@@ -62,17 +62,6 @@ public enum ResourceUtil {;
                         d -> d.def("chest", centerChest)));
     }
 
-    public static void addBedItemDefinition(String bedColor, EBEPack pack) {
-        pack.addTemplateResource(vanillaId("items/" + bedColor + "_bed.json"),
-                t -> t.load("item/bed.json",
-                        d -> d.def("head", bedColor + "_bed_head").def("foot", bedColor + "_bed_foot")));
-
-        pack.addTemplateResource(vanillaId("models/item/" + bedColor + "_bed_head.json"),
-                t -> t.load("model/bed_head_item.json", d -> d.def("bed", bedColor)));
-        pack.addTemplateResource(vanillaId("models/item/" + bedColor + "_bed_foot.json"),
-                t -> t.load("model/bed_foot_item.json", d -> d.def("bed", spriteAlias("entity/bed/" + bedColor))));
-    }
-
     private static String list(String ... els) {
         return String.join(",", els);
     }
@@ -167,13 +156,6 @@ public enum ResourceUtil {;
     private static String chestParticle(String chestName) {
         if (EnhancedBlockEntities.CONFIG.experimentalChests) {
             return kv("particle", "block/" + chestName + "_particle") + ",";
-        }
-        return "";
-    }
-
-    private static String bedParticle(String bedColor) {
-        if (EnhancedBlockEntities.CONFIG.experimentalBeds) {
-            return kv("particle", "block/" + bedColor + "_bed_particle") + ",";
         }
         return "";
     }
@@ -283,41 +265,6 @@ public enum ResourceUtil {;
                     }
                     return vars.get();
                 }, pack);
-    }
-
-    public static void addBedModels(DyeColor bedColor, EBEPack pack) {
-        String color = bedColor.getName();
-
-        addParentTexModel(bedAOSuffix("block/template_bed_head"),
-                bedParticle(color) + kv("bed", spriteAlias("entity/bed/" + color)),
-                vanillaId("block/" + color + "_bed_head"), pack);
-        addParentTexModel(bedAOSuffix("block/template_bed_foot"),
-                bedParticle(color) + kv("bed", spriteAlias("entity/bed/" + color)),
-                vanillaId("block/" + color + "_bed_foot"), pack);
-
-        addBedItemDefinition(color, pack);
-    }
-
-    public static void addBedBlockState(DyeColor bedColor, EBEPack pack) {
-        String color = bedColor.getName();
-        addBlockState(vanillaId(color + "_bed"),
-                t -> {
-                    var vars = new DelimitedAppender(",");
-                    for (Direction dir : EBEUtil.HORIZONTAL_DIRECTIONS) {
-                        int rot = EBEUtil.angle(dir) + 180;
-                        vars
-                                .append(variantY(t, "part=head,facing=" + dir.getName(), "block/" + bedColor + "_bed_head", rot))
-                                .append(variantY(t, "part=foot,facing=" + dir.getName(), "block/" + bedColor + "_bed_foot", rot));
-                    }
-                    return vars.get();
-                }, pack);
-    }
-
-    private static String bedAOSuffix(String model) {
-        if (EnhancedBlockEntities.CONFIG.bedAO) {
-            model += "_ao";
-        }
-        return model;
     }
 
     public static void addShulkerBoxModels(@Nullable DyeColor color, EBEPack pack) {
